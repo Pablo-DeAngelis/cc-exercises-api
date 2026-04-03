@@ -1,0 +1,16 @@
+import express from 'express'
+import * as exercisesController from '../controllers/exercisesController.js'
+import { VerifiToken } from '../helpers/verifyToken.js'
+
+const router = express.Router()
+
+// IMPORTANTE: la ruta /similar/:exerciseId debe definirse ANTES de /:exerciseId
+// para evitar que Express interprete 'similar' como un exerciseId
+
+// Obtener ejercicios similares a uno dado
+router.get('/exercises/similar/:exerciseId', VerifiToken.appCheckVerification, exercisesController.getSimilarExercises)
+
+// Obtener ejercicio por ID
+router.get('/exercises/:exerciseId', VerifiToken.appCheckVerification, exercisesController.getExerciseById)
+
+export default router
