@@ -4,14 +4,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch index.js",
-    "start": "node index.js",
+    "dev": "node --import ./instrument.js --watch index.js",
+    "start": "node --import ./instrument.js index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "description": "Microservicio para consulta y similitud de ejercicios del catálogo CoachConnect",
   "dependencies": {
+    "@sentry/node": "^10.47.0",
     "dotenv": "^17.2.3",
     "express": "^4.21.1",
     "express-rate-limit": "^8.2.1",

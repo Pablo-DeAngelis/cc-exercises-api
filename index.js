@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import * as Sentry from '@sentry/node'
 import express from 'express'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
@@ -48,6 +49,8 @@ loadExerciseCache()
   .catch((error) => {
     console.error('Failed to load exercise cache on startup:', error)
   })
+
+Sentry.setupExpressErrorHandler(app)
 
 app.listen(port, host, () => {
   console.log(`cc-exercises-api is running on ${host}:${port}`)
