@@ -1,4 +1,3 @@
-import { collection, getDocs } from 'firebase/firestore'
 import connection from '../config/connection.js'
 
 const EXERCISE_CACHE_TTL_MS = parseInt(process.env.EXERCISE_CACHE_TTL_MS || '300000', 10)
@@ -14,7 +13,7 @@ let _lastLoaded = 0
 export const loadExerciseCache = async () => {
   try {
     const db = connection()
-    const snapshot = await getDocs(collection(db, 'exercises'))
+    const snapshot = await db.collection('exercises').get()
     const exercises = []
     snapshot.forEach((doc) => {
       exercises.push({ id: doc.id, ...doc.data() })
