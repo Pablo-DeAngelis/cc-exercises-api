@@ -12,5 +12,5 @@ COPY . .
 
 FROM base
 COPY --from=build /app /app
-EXPOSE 3003
+EXPOSE 8080
 CMD [ "npm", "run", "start" ]
