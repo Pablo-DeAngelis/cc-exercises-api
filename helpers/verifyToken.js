@@ -7,7 +7,7 @@ export class VerifiToken {
     const authorizationHeader = req.header('Authorization')
 
     if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Unauthorized: No token provided or invalid format' })
+      return res.status(401).json({ message: 'Unauthorized: No token provided or invalid format', code: 'UNAUTHORIZED' })
     }
 
     const token = authorizationHeader.split('Bearer ')[1]
@@ -26,7 +26,7 @@ export class VerifiToken {
       next()
     } catch (error) {
       console.error('Error verifying token:', error)
-      return res.status(401).json({ message: 'Unauthorized: Invalid token' })
+      return res.status(401).json({ message: 'Unauthorized: Invalid token', code: 'INVALID_TOKEN' })
     }
   }
 }

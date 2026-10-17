@@ -21,6 +21,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: {
     error: 'Too many requests',
+    code: 'RATE_LIMITED',
     details: 'Please try again later'
   }
 })

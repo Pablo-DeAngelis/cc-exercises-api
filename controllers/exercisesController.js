@@ -1,4 +1,6 @@
 import { getExerciseCache } from '../data/exerciseCache.js'
+import { findExerciseByName, withDisplayName } from '../helpers/displayName.js'
+import { resolveRequestLocale } from '../helpers/requestLocale.js'
 
 // Pesos del algoritmo de similitud (max 100 pts)
 const SIMILARITY_WEIGHTS = {
@@ -48,6 +50,7 @@ export const getExerciseById = async (req, res) => {
     return res.status(400).json({
       success: false,
       error: 'Invalid parameter',
+      code: 'INVALID_PARAMETER',
       details: 'exerciseId must be a non-empty string'
     })
   }
@@ -60,19 +63,23 @@ export const getExerciseById = async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Exercise not found',
+        code: 'EXERCISE_NOT_FOUND',
         details: `No exercise with id '${exerciseId}' found in cache`
       })
     }
 
+    const locale = await resolveRequestLocale(req)
+
     return res.status(200).json({
       success: true,
-      data: exercise
+      data: withDisplayName(exercise, locale)
     })
   } catch (error) {
     console.error('Error getting exercise by id:', error)
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
+      code: 'INTERNAL_ERROR',
       details: process.env.CC_ENVIRONMENT === 'DEV' ? error.message : 'Please contact support'
     })
   }
@@ -87,7 +94,7 @@ const parseSimilarityParams = (query) => {
   if (query.limit !== undefined) {
     const parsedLimit = parseInt(query.limit, 10)
     if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 50) {
-      return { error: { status: 400, body: { success: false, error: 'Invalid parameter', details: 'limit must be an integer between 1 and 50' } } }
+      return { error: { status: 400, body: { success: false, error: 'Invalid parameter', code: 'INVALID_LIMIT', details: 'limit must be an integer between 1 and 50' } } }
     }
     limit = parsedLimit
   }
@@ -96,7 +103,7 @@ const parseSimilarityParams = (query) => {
   if (query.excludeSelf !== undefined) {
     const raw = query.excludeSelf
     if (raw !== 'true' && raw !== 'false') {
-      return { error: { status: 400, body: { success: false, error: 'Invalid parameter', details: 'excludeSelf must be a boolean (true or false)' } } }
+      return { error: { status: 400, body: { success: false, error: 'Invalid parameter', code: 'INVALID_EXCLUDE_SELF', details: 'excludeSelf must be a boolean (true or false)' } } }
     }
     excludeSelf = raw === 'true'
   }
@@ -141,6 +148,7 @@ export const getSimilarExercisesByName = async (req, res) => {
     return res.status(400).json({
       success: false,
       error: 'Missing required parameter',
+      code: 'MISSING_PARAMETER',
       details: 'name query param is required'
     })
   }
@@ -150,30 +158,32 @@ export const getSimilarExercisesByName = async (req, res) => {
 
   try {
     const cache = getExerciseCache()
-    const nameLower = name.trim().toLowerCase()
-    const referenceExercise = cache.find((ex) => (ex.exercise_name || '').toLowerCase() === nameLower)
+    const referenceExercise = findExerciseByName(cache, name)
 
     if (!referenceExercise) {
       return res.status(404).json({
         success: false,
         error: 'Exercise not found',
+        code: 'EXERCISE_NOT_FOUND',
         details: `No exercise with name '${name}' found in cache`
       })
     }
 
     const candidates = computeSimilar(referenceExercise, cache, params)
+    const locale = await resolveRequestLocale(req)
 
     return res.status(200).json({
       success: true,
-      referenceExercise,
+      referenceExercise: withDisplayName(referenceExercise, locale),
       count: candidates.length,
-      data: candidates
+      data: candidates.map((ex) => withDisplayName(ex, locale))
     })
   } catch (error) {
     console.error('Error getting similar exercises by name:', error)
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
+      code: 'INTERNAL_ERROR',
       details: process.env.CC_ENVIRONMENT === 'DEV' ? error.message : 'Please contact support'
     })
   }
@@ -191,6 +201,7 @@ export const getSimilarExercises = async (req, res) => {
     return res.status(400).json({
       success: false,
       error: 'Invalid parameter',
+      code: 'INVALID_PARAMETER',
       details: 'exerciseId must be a non-empty string'
     })
   }
@@ -206,23 +217,26 @@ export const getSimilarExercises = async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Exercise not found',
+        code: 'EXERCISE_NOT_FOUND',
         details: `No exercise with id '${exerciseId}' found in cache`
       })
     }
 
     const candidates = computeSimilar(referenceExercise, cache, params)
+    const locale = await resolveRequestLocale(req)
 
     return res.status(200).json({
       success: true,
-      referenceExercise,
+      referenceExercise: withDisplayName(referenceExercise, locale),
       count: candidates.length,
-      data: candidates
+      data: candidates.map((ex) => withDisplayName(ex, locale))
     })
   } catch (error) {
     console.error('Error getting similar exercises:', error)
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
+      code: 'INTERNAL_ERROR',
       details: process.env.CC_ENVIRONMENT === 'DEV' ? error.message : 'Please contact support'
     })
   }
